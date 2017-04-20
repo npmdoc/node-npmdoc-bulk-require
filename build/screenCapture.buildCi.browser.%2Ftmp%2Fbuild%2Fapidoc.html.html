@@ -1,0 +1,177 @@
+<html><head></head><body><div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a href="https://github.com/substack/bulk-require">bulk-require (v1.0.0)</a>
+</h1>
+<h4>require a whole directory of trees in bulk</h4>
+<div class="apidocSectionDiv"><a href="#apidoc.tableOfContents" id="apidoc.tableOfContents"><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.bulk-require">module bulk-require</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.bulk-require.bulk-require">
+            function <span class="apidocSignatureSpan"></span>bulk-require
+            <span class="apidocSignatureSpan">(root, globs, opts)</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.bulk-require" id="apidoc.module.bulk-require">module bulk-require</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.bulk-require.bulk-require" id="apidoc.element.bulk-require.bulk-require">
+        function <span class="apidocSignatureSpan"></span>bulk-require
+        <span class="apidocSignatureSpan">(root, globs, opts)</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">bulk-require = function (root, globs, opts) {
+    if (typeof globs === 'string') globs = [ globs ];
+    if (!Array.isArray(globs)) return {};
+    if (!opts) opts = {};
+    opts.index = opts.index === false ? false : true
+    var requireFn = opts.require || require;
+
+    var xglobs = globs.map(function (g) {
+        if (Array.isArray(g)) {
+            return [ path.resolve(root, g[0]) ].concat(g.slice(1));
+        }
+        return path.resolve(root, g)
+    });
+
+    return walk(xglobs.reduce(function (acc, g) {
+        var args = [];
+        if (Array.isArray(g)) {
+            args = g.slice(1);
+            g = g[0];
+        }
+        var ex = glob.sync(g);
+
+        ex.forEach(function (file) {
+            var keys = keyOf(file);
+            for (var node = acc, i = 0; i &lt; keys.length; i++) {
+                var key = keys[i];
+                if (i === keys.length - 1) {
+                    if (!node[key]) node[key] = [ file ];
+                    node[key].push.apply(node[key], args);
+                }
+                else {
+                    if (!node[key]) node[key] = {};
+                    node = node[key];
+                }
+            }
+        });
+        return acc;
+    }, {}));
+
+    function walk (node) {
+        if (Array.isArray(node)) {
+            var exp = requireFn(node[0]);
+            var args = node.slice(1);
+            if (args.length === 0) return exp;
+            var mapF = function (f) {
+                if (typeof f !== 'function') return f;
+                return function () {
+                    var args_ = args.concat([].slice.call(arguments));
+                    return f.apply(this, args_);
+                };
+            };
+
+            if (typeof exp === 'function') {
+                return mapF(exp);
+            }
+            else if (Array.isArray(exp)) {
+                return exp.map(mapF);
+            }
+            else if (exp &amp;&amp; typeof exp === 'object') {
+                return Object.keys(exp).reduce(function (acc, key) {
+                    acc[key] = mapF(exp[key]);
+                    return acc;
+                }, {});
+            }
+            else return exp;
+        }
+        else if (typeof node === 'object') {
+            var init = opts.index &amp;&amp; node.index &amp;&amp; typeof node.index[0] === 'string'
+                &amp;&amp; requireFn(node.index[0]);
+
+            return Object.keys(node).reduce(function (acc, key) {
+                acc[key] = walk(node[key]);
+                return acc;
+            }, init &amp;&amp; typeof init === 'function' ? init : {});
+        }
+    }
+
+    function keyOf (file) {
+        var parts = path.relative(root, file).split(/\/|\\/);
+        var len = parts.length;
+        if (len) parts[len-1] = parts[len-1].replace(/\.[^.]*$/, '');
+        return parts;
+    }
+}</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
+</body></html>
